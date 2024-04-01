@@ -1,0 +1,97 @@
+# @package _global_
+
+name: afhq
+dim: 12288
+image_size: [3,64,64]
+
+lim: 15
+
+optim:
+  max_epochs: 100
+  batch_size: 16
+  lr: 1e-4
+
+### problem
+prob:
+  name: ${name}
+  sigma: 0.5
+  p0:
+    name: afhq
+    resize: ${image_size[2]}
+    animals: [cat]
+  p1:
+    name: afhq
+    resize: ${image_size[2]}
+    animals: [dog]
+
+### network
+field: vector
+unet:
+  num_head_channels: 64
+  image_size: 64
+  in_channels: 3
+  model_channels: 128 # optim.batch_size=64
+  # model_channels: 160 # optim.batch_size=64
+  # model_channels: 192 # optim.batch_size=32
+  out_channels: ${unet.in_channels}
+  num_res_blocks: 4 # 3
+  resblock_updown: true
+  use_new_attention_order: true
+  use_scale_shift_norm: true
+  attention_resolutions:
+  - 32
+  - 16
+  - 8
+  dropout: 0.1
+  channel_mult:
+  - 1
+  - 2
+  - 2 #3
+  - 2 #4
+  num_heads: 4
+  use_checkpoint: false #true
+  with_fourier_features: false
+
+### gsbm matching (Alg 1)
+matching:
+  loss: bm
+
+### gsbm conditional SOC (Alg 3 & 4)
+csoc:
+  name: ${name}
+
+  ## train dataloader (B * epd_fct = data size)
+  B: 25600     # number of couplings
+  epd_fct: 500 # times each coupling appears in each epoch
+
+  ## spline param
+  T_mean: 8  # number of knots mean spline
+  T_gamma: 8 # number of knots gamma spline
+
+  ## spline optim
+  optim: adam    # optimizer {sgd, adam}
+  S: 30          # number of timesteps
+  N: 4           # number of trajs per couplings
+  lr_mean: 0.01  # lr of mean spline
+  lr_gamma: 0.03 # lr of gamma spline
+  nitr: 100      # optim steps
+  mB: 64         # micro batch size FIXME tune base on spline
+  scale_by_sigma: true # scale control by sigma (equiv to KL)
+  weight_c: 0.2
+  weight_s: 5.0
+
+  ## impt weight
+  IW: false
+
+vae:
+  ckpt: ./data/vae.ckpt
+  image_size: ${image_size}
+
+plot:
+  name: ${name}
+
+hydra:
+  launcher:
+    gpus_per_node: 8
+    constraint: volta32gb
+    mem_per_gpu: 64gb

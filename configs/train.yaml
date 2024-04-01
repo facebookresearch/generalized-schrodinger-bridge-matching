@@ -1,0 +1,46 @@
+defaults:
+  - _self_
+  - experiment: null
+  - override hydra/launcher: submitit_slurm
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog
+
+optim:
+  max_epochs: 30
+  num_workers: 2
+  batch_size: 64
+  val_batch_size: 1024
+  num_iterations: 2000000
+
+  scheduler: cosine
+  grad_clip: 0.0
+  lr: 1e-3
+  wd: 0.0
+  eps: 1e-8
+  ema_decay: 0.999
+
+eval_coupling: false
+nfe: 1000
+use_wandb: false
+resume: null
+seed: 0
+nnodes: 1
+
+hydra:
+  job:
+    chdir: True
+  run:
+    dir: ./outputs/runs/${name}/${now:%Y.%m.%d}/${now:%H%M%S}
+  sweep:
+    dir: ./outputs/multiruns/${name}/${now:%Y.%m.%d}/${now:%H%M%S}
+    subdir: ${hydra.job.num}
+  launcher:
+    max_num_timeout: 100000
+    timeout_min: 4319
+    cpus_per_task: 10
+    gpus_per_node: 1
+    tasks_per_node: ${hydra.launcher.gpus_per_node}
+    nodes: ${nnodes}
+    partition: learnlab
+    constraint: volta16gb
+    mem_per_gpu: 30gb

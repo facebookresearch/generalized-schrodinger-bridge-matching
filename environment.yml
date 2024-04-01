@@ -1,0 +1,39 @@
+name: gsbm
+channels:
+  - pytorch
+  - conda-forge
+  - nvidia
+dependencies:
+  - python=3.9
+  - pytorch
+  - pytorch-cuda=11.7
+  - matplotlib
+  - jupyter
+  - numpy
+  - pip
+  - tqdm
+  - torchmetrics
+  - ipdb
+  - pip:
+    - submitit
+    - pre-commit
+    - black==22.6.0
+    - ipykernel
+    - torchdiffeq
+    - scikit-learn
+    - pytorch-lightning==1.8.5.post0
+    - hydra-core==1.2.0
+    - hydra-submitit-launcher==1.2.0
+    - hydra_colorlog==1.2.0
+    - click
+    - wandb
+    - biopython
+    - pyevtk
+    - ipympl
+    - geomloss
+    - colored-traceback
+    - POT
+    - termcolor
+    - torchvision
+    - laspy
+    - gdown

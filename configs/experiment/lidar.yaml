@@ -1,0 +1,71 @@
+# @package _global_
+
+name: lidar
+dim: 3
+
+optim:
+  max_epochs: 10
+
+### problem
+prob:
+  name: ${name}
+  sigma: 1.0
+  p0:
+    name: lidarproj
+    mu: [[-4, -2, 0.5], [-3.75, -1.125, 0.5], [-3.5, -0.25, 0.5], [-3.25, 0.675, 0.5], [-3, 1.5, 0.5]]
+    var: 0.02
+    lcfg: ${lidar}
+  p1:
+    name: lidarproj
+    mu: [[2, -2, 0.5], [2.6, -1.25, 0.5], [3.2, -0.5, 0.5]]
+    var: 0.03
+    lcfg: ${lidar}
+
+### network
+field: vector
+net: toy
+
+### gsbm matching (Alg 1)
+matching:
+  loss: bm
+
+### gsbm conditional SOC (Alg 3 & 4)
+csoc:
+  name: ${name}
+
+  ## train dataloader (B * epd_fct = data size)
+  B: 2560       # number of couplings
+  epd_fct: 1000 # times each coupling appears in each epoch
+
+  ## spline param
+  T_mean: 30  # number of knots mean spline
+  T_gamma: 30 # number of knots gamma spline
+
+  ## spline optim
+  optim: sgd    # optimizer {sgd, adam}
+  S: 100        # number of timesteps
+  N: 4          # number of trajs per couplings
+  lr_mean: 0.03 # lr of mean spline
+  lr_gamma: 0.03 # lr of gamma spline
+  nitr: 200    # optim steps
+  mB: 256      # micro batch size
+  momentum: 0.5 # mSGD
+  scale_by_sigma: true # scale control by sigma (equiv to KL)
+
+  ## impt weight
+  IW: false
+  IW_N: ${csoc.epd_fct}
+  IW_S: 300
+
+### LiDAR state cost
+lidar:
+  lim: 5
+  filename: ./data/rainier2-thin.las
+  k: 20
+  closeness_weight: 5000
+  boundary_weight: 5000
+  height_weight: 5000
+
+plot:
+  name: ${name}
+  lim: ${lidar.lim}

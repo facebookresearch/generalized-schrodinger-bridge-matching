@@ -1,0 +1,67 @@
+# @package _global_
+
+name: gmm
+dim: 2
+
+### problem
+prob:
+  name: ${name}
+  sigma: 1
+  p0:
+    name: gmm
+    # radius: 4
+    # num: 4
+    mu: [[4., 0.], [0., 4.], [-4., 0.,], [0., -4.]]
+    var: 1.0
+  p1:
+    name: gmm
+    # radius: 16
+    # num: 8
+    mu: [[16, 0], [11.31, 11.31], [0, 16,], [-11.31, 11.31], [-16, 0], [-11.31, -11.31], [0, -16], [11.31, -11.31]]
+    var: 1.0
+
+### network
+field: vector
+net: toy
+
+### gsbm matching (Alg 1)
+matching:
+  loss: bm
+
+### gsbm conditional SOC (Alg 3 & 4)
+csoc:
+  name: ${name}
+
+  ## train dataloader (B * epd_fct = data size)
+  B: 5120      # number of couplings
+  epd_fct: 500 # times each coupling appears in each epoch
+
+  ## spline param
+  T_mean: 15  # number of knots mean spline
+  T_gamma: 30 # number of knots gamma spline
+
+  ## spline optim
+  optim: sgd     # optimizer {sgd, adam}
+  S: 100         # number of timesteps
+  N: 4           # number of trajs per couplings
+  lr_mean: 0.4   # lr of mean spline
+  lr_gamma: 0.2  # lr of gamma spline
+  nitr: 2000     # optim steps
+  mB: 256        # micro batch size
+  momentum: 0.0  # mSGD
+  scale_by_sigma: true # scale control by sigma (equiv to KL)
+
+  ## impt weight
+  IW: false
+  IW_N: ${csoc.epd_fct}
+  IW_S: 300
+
+state_cost:
+  type: [obs, ent]
+  obs: 1500. # obstacle cost
+  ent: 5.    # entropy interaction cost
+  cgst: 0.   # congestion interaction cost
+
+plot:
+  name: ${name}
+  lim: 18
